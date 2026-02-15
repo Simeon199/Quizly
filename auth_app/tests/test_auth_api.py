@@ -96,3 +96,29 @@ def test_logout(api_client, created_user):
     assert "Log-Out successfully" in response.data['detail']
     assert response.cookies['access_token'].value == ''
     assert response.cookies['refresh_token'].value == ''
+
+@pytest.mark.django_db
+def test_registration_duplicate_email(api_client, user_data, created_user):
+    url = reverse('registration')
+    response = api_client.post(url, user_data)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'email' in response.data
+
+@pytest.mark.django_db
+def test_login_invalid_credentials(api_client, created_user, user_data):
+    url = reverse('token_obtain_pair')
+    login_data = {
+        "username": user_data['username'],
+        "password": "wrongpassword"
+    }
+    response = api_client.post(url, login_data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.data['detail'] == "No active account found with the given credentials"
+
+@pytest.mark.django_db
+def test_refresh_token_invalid(api_client):
+    refresh_url = reverse('token_refresh')
+    api_client.cookies['refresh_token'] = 'invalid_token'
+    response = api_client.post(refresh_url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.data['detail'] == "Refresh token invalid!"
