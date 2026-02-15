@@ -1,8 +1,9 @@
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegistrationSerializer, CustomTokenObtainPairSerializer
 
 class RegistrationView(APIView):
@@ -15,11 +16,9 @@ class RegistrationView(APIView):
         if serializer.is_valid():
             saved_account = serializer.save()
             data = {
-                'username': saved_account.username,
-                'email': saved_account.email,
-                'user_id': saved_account.pk
+                'detail': "User created successfully!"
             }
-            return Response(data)
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
@@ -34,8 +33,12 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
         refresh = serializer.validated_data['refresh']
         access = serializer.validated_data['access']
+        user = serializer.validated_data['user']
 
-        response = Response("message: Login successful")
+        response = Response({
+            "detail": "Login successfully!",
+            "user": user
+        })
 
         response.set_cookie(
             key='access_token',
@@ -74,7 +77,7 @@ class CookieTokenRefreshView(TokenRefreshView):
             )
         
         access_token = serializer.validated_data.get('access')
-        response = Response({'message': 'Token refreshed successfully'})
+        response = Response({'detail': 'Token refreshed'})
         response.set_cookie(
             key='access_token',
             value=access_token,
@@ -83,4 +86,24 @@ class CookieTokenRefreshView(TokenRefreshView):
             samesite='Lax'
         )
 
+        return response
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+        except Exception as e:
+            pass
+        
+        response = Response(
+            {"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."},
+            status=status.HTTP_200_OK
+        )
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
         return response
