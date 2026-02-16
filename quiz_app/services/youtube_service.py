@@ -3,6 +3,35 @@ import uuid
 from django.conf import settings
 from yt_dlp import YoutubeDL
 
+
+def _prepare_output_path():
+    media_dir = os.path.join(settings.MEDIA_ROOT, 'audio')
+    os.makedirs(media_dir, exist_ok=True)
+    unique_filename = str(uuid.uuid4())
+    return os.path.join(media_dir, unique_filename)
+
+def _build_ydl_opts(output_path):
+    return {
+        'format': 'bestaudio/best',
+        'outtmpl': output_path + '.%(ext)s',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'quiet': True,
+        'no_warnings': True,
+    }
+
+def _extract_audio(video_url, ydl_opts):
+    with YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(video_url, download=True)
+        return info.get('title', 'Untitled Video')
+
+def _verify_audio_file(audio_path):
+    if not os.path.exists(audio_path):
+        raise ValueError('Audio file was not created after download.')
+
 def download_audio(video_url):
     """
     Downloads the audio track of a YouTube video using yt-dlp.
@@ -18,38 +47,12 @@ def download_audio(video_url):
     Raises:
         ValueError: If the URL is invalid or the video cannot be downloaded.
     """
-    media_dir = os.path.join(settings.MEDIA_ROOT, 'audio')
-    os.makedirs(media_dir, exist_ok=True)
-
-    unique_filename = str(uuid.uuid4())
-    output_path = os.path.join(media_dir, unique_filename)
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': output_path + '.%(ext)s',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'quiet': True,
-        'no_warnings': True,
-    }
-
     try:
-        with YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=True)
-            title = info.get('title', 'Untitled Video')
-
+        output_path = _prepare_output_path()
+        ydl_opts = _build_ydl_opts(output_path)
+        title = _extract_audio(video_url, ydl_opts)
         audio_path = output_path + '.mp3'
-
-        if not os.path.exists(audio_path):
-            raise ValueError('Audio file was not created after download.')
-
-        return {
-            'audio_path': audio_path,
-            'title': title,
-        }
-
+        _verify_audio_file(audio_path)
+        return {'audio_path': audio_path, 'title': title}
     except Exception as e:
         raise ValueError(f'Could not download audio from the provided URL: {e}')
