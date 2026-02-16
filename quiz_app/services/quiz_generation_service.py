@@ -55,20 +55,19 @@ def generate_quiz(transcript):
         ValueError: If the API key is missing, the API call fails,
                     or the response cannot be parsed.
     """
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
+    if not settings.GEMINI_API_KEY:
         raise ValueError(
             'GEMINI_API_KEY is not configured. '
             'Please add it to your .env file.'
         )
 
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client()
 
-        prompt = QUIZ_PROMPT.format(transcript=transcript)
+        prompt = QUIZ_PROMPT.replace('{transcript}', transcript)
 
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-3-flash-preview',
             contents=prompt,
         )
 
