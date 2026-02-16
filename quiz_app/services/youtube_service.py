@@ -1,12 +1,7 @@
 import os
 import uuid
-import logging
-
 from django.conf import settings
 from yt_dlp import YoutubeDL
-
-logger = logging.getLogger(__name__)
-
 
 def download_audio(video_url):
     """
@@ -51,12 +46,10 @@ def download_audio(video_url):
         if not os.path.exists(audio_path):
             raise ValueError('Audio file was not created after download.')
 
-        logger.info(f'Audio downloaded successfully: {audio_path}')
         return {
             'audio_path': audio_path,
             'title': title,
         }
 
     except Exception as e:
-        logger.error(f'Failed to download audio from {video_url}: {e}')
         raise ValueError(f'Could not download audio from the provided URL: {e}')
