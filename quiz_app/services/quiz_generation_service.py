@@ -3,31 +3,31 @@ from django.conf import settings
 from google import genai
 
 QUIZ_PROMPT = """
-Based on the following transcript from a YouTube video, generate a quiz with exactly 10 multiple-choice questions.
+Erstellen anhand der folgenden Transkription eines YouTube-Videos ein Quiz mit genau 10 Multiple-Choice-Fragen.
 
-Each question must have exactly 4 answer options (A, B, C, D), with exactly one correct answer.
+Jede Frage muss genau 4 Antwortmöglichkeiten (A, B, C, D) mit genau einer richtigen Antwort enthalten.
 
-IMPORTANT: Return ONLY a valid JSON array with no additional text, no markdown, no code fences.
-Each object in the array must have exactly these keys:
-- "question_title": The question text
-- "question_options": An object with keys "A", "B", "C", "D" and their corresponding answer texts
-- "answer": The letter of the correct answer ("A", "B", "C", or "D")
+WICHTIG: Gebe NUR ein gültiges JSON-Array ohne zusätzlichen Text, ohne Markdown und ohne Code-Fences zurück.
+Jedes Objekt im Array muss genau diese Schlüssel enthalten:
+- „question_title”: Der Fragetext
+- „question_options”: Ein Objekt mit den Schlüsseln „A”, „B”, „C”, „D” und den entsprechenden Antworttexten
+- „answer”: Der Buchstabe der richtigen Antwort („A”, „B”, „C” oder „D”)
 
-Example format:
+Beispielformat:
 [
     {
-        "question_title": "What is the main topic discussed?",
-        "question_options": {
-            "A": "Option A text",
-            "B": "Option B text",
-            "C": "Option C text",
-            "D": "Option D text"
+        „question_title“: „Was ist das Hauptthema der Diskussion?“,
+        „question_options”: {
+            „A”: „Text Option A”,
+            „B”: „Text Option B”,
+            „C”: „Text Option C”,
+            „D”: „Text Option D”
         },
-        "answer": "A"
+        „answer”: „A”
     }
 ]
 
-Here is the transcript:
+Hier ist das Transkript:
 
 {transcript}"""
 
