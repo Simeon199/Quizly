@@ -13,10 +13,16 @@ def _get_model():
     return _model
 
 def _validate_audio_path(audio_path):
+    """
+    Raises FileNotFoundError if the given audio file does not exist.
+    """
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f'Audio file not found: {audio_path}')
 
 def _run_transcription(audio_path):
+    """
+    Runs the Whisper model on the audio file and returns the transcribed text.
+    """
     model = _get_model()
     result = model.transcribe(audio_path)
     transcript = result.get('text', '').strip()
@@ -25,6 +31,9 @@ def _run_transcription(audio_path):
     return transcript
 
 def _cleanup_audio_file(audio_path):
+    """
+    Deletes the temporary audio file if it exists.
+    """
     if os.path.exists(audio_path):
         os.remove(audio_path)
 
