@@ -5,7 +5,10 @@ from quiz_app.models import Quiz, Question
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'question_title', 'question_options', 'answer']
+        fields = [
+            'id', 'question_title', 'question_options',
+            'answer', 'created_at', 'updated_at'
+        ]
 
 
 class QuizSerializer(serializers.ModelSerializer):
@@ -13,5 +16,13 @@ class QuizSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Quiz
-        fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
+        fields = [
+            'id', 'title', 'description',
+            'created_at', 'updated_at',
+            'video_url', 'questions'
+        ]
         read_only_fields = ['created_at', 'updated_at']
+
+
+class QuizCreateSerializer(serializers.Serializer):
+    url = serializers.URLField()

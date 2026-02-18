@@ -43,6 +43,8 @@ class Question(models.Model):
     question_title = models.CharField(max_length=500)
     question_options = models.JSONField()
     answer = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.question_title

@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import QuizListView
+from .views import QuizListCreateView
 
 urlpatterns = [
-    path('quizzes/', QuizListView.as_view(), name='quiz-list'),
+    path('quizzes/', QuizListCreateView.as_view(), name='quiz-list-create'),
 ]
