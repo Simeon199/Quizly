@@ -32,15 +32,24 @@ Hier ist das Transkript:
 {transcript}"""
 
 def _ensure_api_key():
+    """
+    Raises ValueError if the GEMINI_API_KEY is not set in the environment.
+    """
     if not settings.GEMINI_API_KEY:
         raise ValueError(
             'GEMINI_API_KEY is not configured. Please add it to your .env file.'
         )
     
 def _build_prompt(transcript):
+    """
+    Inserts the transcript into the prompt template and returns the full prompt.
+    """
     return QUIZ_PROMPT.replace('{transcript}', transcript)
 
 def _call_gemini(prompt):
+    """
+    Sends the prompt to the Gemini API and returns the raw response text.
+    """
     client = genai.Client()
     response = client.models.generate_content(
         model='gemini-3-flash-preview',
@@ -49,6 +58,9 @@ def _call_gemini(prompt):
     return response.text.strip()
 
 def _clean_response(raw_text):
+    """
+    Strips markdown code fences from the response if present.
+    """
     if raw_text.startswith('```'):
         raw_text = raw_text.strip('`')
         if raw_text.startswith('json'):
@@ -57,6 +69,9 @@ def _clean_response(raw_text):
     return raw_text
 
 def _parse_questions(json_str):
+    """
+    Parses a JSON string into a list of question dictionaries.
+    """
     try:
         questions = json.loads(json_str)
     except json.JSONDecodeError as e:
@@ -66,11 +81,17 @@ def _parse_questions(json_str):
     return questions
 
 def _trim_and_validate(questions):
+    """
+    Truncates the list to a maximum of 10 questions.
+    """
     if len(questions) > 10:
         return questions[:10]
     return questions
 
 def _validate_required_keys(question, index):
+    """
+    Raises ValueError if the question is missing any required keys.
+    """
     required = ('question_title', 'question_options', 'answer')
     if not all(key in question for key in required):
         raise ValueError(
@@ -79,6 +100,9 @@ def _validate_required_keys(question, index):
         )
 
 def _validate_options(question, index):
+    """
+    Raises ValueError if any of the options A, B, C or D is missing.
+    """
     options = question['question_options']
     if not all(letter in options for letter in ('A', 'B', 'C', 'D')):
         raise ValueError(
@@ -87,15 +111,24 @@ def _validate_options(question, index):
         )
 
 def _validate_answer(question, index):
+    """
+    Raises ValueError if the answer is not A, B, C or D.
+    """
     if question['answer'] not in ('A', 'B', 'C', 'D'):
         raise ValueError(f"Question {index} has invalid answer: {question['answer']}")
 
 def _validate_question_structure(question, index):
+    """
+    Validates that a single question has all required keys, options and a valid answer.
+    """
     _validate_required_keys(question, index)
     _validate_options(question, index)
     _validate_answer(question, index)
     
 def generate_quiz_setup(transcript):
+    """
+    Runs the full pipeline: API key check, prompt building, Gemini call, parsing and trimming.
+    """
     _ensure_api_key()
     prompt = _build_prompt(transcript)
     raw_text = _call_gemini(prompt)
@@ -105,6 +138,9 @@ def generate_quiz_setup(transcript):
     return questions
 
 def generate_quiz_questions(questions):
+    """
+    Validates the structure of every question in the list.
+    """
     for index, question in enumerate(questions):
         _validate_question_structure(question, index + 1)
     return questions
@@ -112,6 +148,9 @@ def generate_quiz_questions(questions):
 MAX_RETRIES = 3
 
 def _fetch_and_validate(prompt):
+    """
+    Calls Gemini, cleans and parses the response, and validates all questions.
+    """
     raw_text = _call_gemini(prompt)
     cleaned = _clean_response(raw_text)
     questions = _parse_questions(cleaned)
