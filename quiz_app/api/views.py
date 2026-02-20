@@ -35,6 +35,16 @@ class QuizUpdateView(generics.UpdateAPIView):
         return Response(QuizSerializer(quiz).data, status=status.HTTP_200_OK)
 
 
+class QuizDestroyView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        quiz = generics.get_object_or_404(Quiz, pk=self.kwargs['pk'])
+        if quiz.user != self.request.user:
+            raise PermissionDenied()
+        return quiz
+
+
 class QuizListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
