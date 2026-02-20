@@ -26,3 +26,13 @@ class QuizSerializer(serializers.ModelSerializer):
 
 class QuizCreateSerializer(serializers.Serializer):
     url = serializers.URLField()
+
+
+class QuizUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Quiz
+        fields = ['title', 'description']
+        extra_kwargs = {
+            'title': {'required': False},
+            'description': {'required': False},
+        }
