@@ -7,6 +7,14 @@ from quiz_app.services.transcription_service import transcribe_audio
 from quiz_app.services.quiz_generation_service import generate_quiz
 
 
+class QuizRetrieveView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = QuizSerializer
+
+    def get_queryset(self):
+        return Quiz.objects.filter(user=self.request.user)
+
+
 class QuizListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 

@@ -244,3 +244,77 @@ def test_post_quiz_generation_failure(mock_download, mock_transcribe, mock_gener
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Quiz generation failed' in response.data['detail']
+
+
+# ==================== GET /api/quizzes/{id}/ ====================
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_authenticated(authenticated_client, sample_quiz):
+    url = reverse('quiz-detail', kwargs={'pk': sample_quiz.pk})
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['id'] == sample_quiz.pk
+    assert response.data['title'] == 'Test Quiz'
+
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_includes_questions(authenticated_client, sample_quiz):
+    url = reverse('quiz-detail', kwargs={'pk': sample_quiz.pk})
+    response = authenticated_client.get(url)
+
+    questions = response.data['questions']
+    assert len(questions) == 10
+    assert questions[0]['question_title'] == 'Question 1'
+    assert questions[0]['answer'] == 'A'
+    assert 'A' in questions[0]['question_options']
+
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_returns_expected_fields(authenticated_client, sample_quiz):
+    url = reverse('quiz-detail', kwargs={'pk': sample_quiz.pk})
+    response = authenticated_client.get(url)
+
+    expected_quiz_fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
+    for field in expected_quiz_fields:
+        assert field in response.data
+
+    expected_question_fields = ['id', 'question_title', 'question_options', 'answer']
+    for field in expected_question_fields:
+        assert field in response.data['questions'][0]
+
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_unauthenticated(api_client, sample_quiz):
+    url = reverse('quiz-detail', kwargs={'pk': sample_quiz.pk})
+    response = api_client.get(url)
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_not_found(authenticated_client):
+    url = reverse('quiz-detail', kwargs={'pk': 99999})
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_get_quiz_by_id_other_users_quiz(authenticated_client, sample_quiz):
+    other_user = User.objects.create_user(
+        username='otheruser',
+        email='other@example.com',
+        password='testpassword123'
+    )
+    other_quiz = Quiz.objects.create(
+        user=other_user,
+        title='Other Quiz',
+        video_url=MOCK_VIDEO_URL,
+        status=Quiz.Status.COMPLETED
+    )
+
+    url = reverse('quiz-detail', kwargs={'pk': other_quiz.pk})
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
