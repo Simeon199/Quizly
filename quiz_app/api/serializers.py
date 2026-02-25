@@ -3,6 +3,15 @@ from quiz_app.models import Quiz, Question
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    question_options = serializers.SerializerMethodField()
+    answer = serializers.SerializerMethodField()
+
+    def get_question_options(self, obj):
+        return list(obj.question_options.values())
+
+    def get_answer(self, obj):
+        return obj.question_options.get(obj.answer, obj.answer)
+
     class Meta:
         model = Question
         fields = [

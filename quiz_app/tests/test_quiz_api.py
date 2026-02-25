@@ -89,8 +89,9 @@ def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
     questions = response.data[0]['questions']
     assert len(questions) == 10
     assert questions[0]['question_title'] == 'Question 1'
-    assert questions[0]['answer'] == 'A'
-    assert 'A' in questions[0]['question_options']
+    assert questions[0]['answer'] == 'Option A'
+    assert isinstance(questions[0]['question_options'], list)
+    assert 'Option A' in questions[0]['question_options']
 
 
 @pytest.mark.django_db
@@ -266,8 +267,9 @@ def test_get_quiz_by_id_includes_questions(authenticated_client, sample_quiz):
     questions = response.data['questions']
     assert len(questions) == 10
     assert questions[0]['question_title'] == 'Question 1'
-    assert questions[0]['answer'] == 'A'
-    assert 'A' in questions[0]['question_options']
+    assert questions[0]['answer'] == 'Option A'
+    assert isinstance(questions[0]['question_options'], list)
+    assert 'Option A' in questions[0]['question_options']
 
 
 @pytest.mark.django_db
