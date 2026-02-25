@@ -11,6 +11,11 @@ from .conftest import MOCK_QUESTIONS, MOCK_VIDEO_URL
 
 @pytest.mark.django_db
 def test_get_quizzes_authenticated(authenticated_client, sample_quiz):
+    """
+    Test retrieving all quizzes for an authenticated user.
+    Verifies that an authenticated user can retrieve their quizzes with a
+    200 OK response and correct quiz data.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
 
@@ -21,6 +26,11 @@ def test_get_quizzes_authenticated(authenticated_client, sample_quiz):
 
 @pytest.mark.django_db
 def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
+    """
+    Test that retrieving quizzes includes all associated questions.
+    Verifies that quiz list responses include all questions with correct
+    titles, answers, and answer options formatted as a list.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
 
@@ -34,6 +44,11 @@ def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
 
 @pytest.mark.django_db
 def test_get_quizzes_returns_expected_fields(authenticated_client, sample_quiz):
+    """
+    Test that quiz list response includes all required fields.
+    Verifies that each quiz in the list contains all expected fields
+    including id, timestamps, video URL, and questions.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
 
@@ -45,6 +60,11 @@ def test_get_quizzes_returns_expected_fields(authenticated_client, sample_quiz):
 
 @pytest.mark.django_db
 def test_get_quizzes_unauthenticated(api_client):
+    """
+    Test that unauthenticated users cannot retrieve quiz list.
+    Verifies that accessing the quiz list endpoint without authentication
+    returns a 401 Unauthorized response.
+    """
     url = reverse('quiz-list-create')
     response = api_client.get(url)
 
@@ -53,6 +73,11 @@ def test_get_quizzes_unauthenticated(api_client):
 
 @pytest.mark.django_db
 def test_get_quizzes_only_own_quizzes(authenticated_client, sample_quiz):
+    """
+    Test that users only see their own quizzes in the list.
+    Verifies that when multiple users have quizzes, an authenticated user
+    only sees their own quizzes, not quizzes from other users.
+    """
     other_user = User.objects.create_user(
         username='otheruser',
         email='other@example.com',
@@ -75,6 +100,11 @@ def test_get_quizzes_only_own_quizzes(authenticated_client, sample_quiz):
 
 @pytest.mark.django_db
 def test_get_quizzes_empty_list(authenticated_client):
+    """
+    Test retrieving quiz list when no quizzes exist.
+    Verifies that the quiz list endpoint returns 200 OK with an empty
+    list when the authenticated user has no quizzes.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
 
@@ -92,6 +122,11 @@ def test_get_quizzes_empty_list(authenticated_client):
     'title': 'Mocked Video Title'
 })
 def test_post_quiz_success(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    """
+    Test successfully creating a quiz from a video URL.
+    Verifies that posting a valid video URL creates a new quiz with
+    generated questions, returns 201 Created, and saves to the database.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
@@ -110,6 +145,11 @@ def test_post_quiz_success(mock_download, mock_transcribe, mock_generate, authen
     'title': 'Mocked Video Title'
 })
 def test_post_quiz_returns_expected_fields(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    """
+    Test that created quiz response includes all required fields.
+    Verifies that the POST response contains all expected quiz and question
+    fields, including timestamps and video URL.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
@@ -124,6 +164,11 @@ def test_post_quiz_returns_expected_fields(mock_download, mock_transcribe, mock_
 
 @pytest.mark.django_db
 def test_post_quiz_unauthenticated(api_client):
+    """
+    Test that unauthenticated users cannot create quizzes.
+    Verifies that attempting to create a quiz without authentication
+    returns a 401 Unauthorized response.
+    """
     url = reverse('quiz-list-create')
     response = api_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
@@ -132,6 +177,11 @@ def test_post_quiz_unauthenticated(api_client):
 
 @pytest.mark.django_db
 def test_post_quiz_invalid_url(authenticated_client):
+    """
+    Test that posting an invalid URL returns 400.
+    Verifies that providing a malformed URL to create a quiz
+    returns a 400 Bad Request response.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': 'not-a-valid-url'}, format='json')
 
@@ -140,6 +190,11 @@ def test_post_quiz_invalid_url(authenticated_client):
 
 @pytest.mark.django_db
 def test_post_quiz_missing_url(authenticated_client):
+    """
+    Test that posting without a URL returns 400.
+    Verifies that omitting the required URL parameter
+    returns a 400 Bad Request response.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {}, format='json')
 
@@ -149,6 +204,11 @@ def test_post_quiz_missing_url(authenticated_client):
 @pytest.mark.django_db
 @patch('quiz_app.api.views.download_audio', side_effect=ValueError('Download failed'))
 def test_post_quiz_download_failure(mock_download, authenticated_client):
+    """
+    Test quiz creation when audio download fails.
+    Verifies that when the video audio download fails, the endpoint
+    returns 400 Bad Request with error details.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
@@ -163,6 +223,11 @@ def test_post_quiz_download_failure(mock_download, authenticated_client):
     'title': 'Mocked Video Title'
 })
 def test_post_quiz_transcription_failure(mock_download, mock_transcribe, authenticated_client):
+    """
+    Test quiz creation when audio transcription fails.
+    Verifies that when transcribing the audio fails, the endpoint
+    returns 400 Bad Request with error details.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
@@ -178,6 +243,11 @@ def test_post_quiz_transcription_failure(mock_download, mock_transcribe, authent
     'title': 'Mocked Video Title'
 })
 def test_post_quiz_generation_failure(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    """
+    Test quiz creation when quiz generation fails.
+    Verifies that when generating quiz questions fails, the endpoint
+    returns 400 Bad Request with error details.
+    """
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
 
