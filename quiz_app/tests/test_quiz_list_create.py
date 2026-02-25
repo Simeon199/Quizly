@@ -1,0 +1,185 @@
+import pytest
+from unittest.mock import patch
+from django.contrib.auth.models import User
+from rest_framework import status
+from django.urls import reverse
+from quiz_app.models import Quiz, Question
+from .conftest import MOCK_QUESTIONS, MOCK_VIDEO_URL
+
+
+# ==================== GET /api/quizzes/ ====================
+
+@pytest.mark.django_db
+def test_get_quizzes_authenticated(authenticated_client, sample_quiz):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 1
+    assert response.data[0]['title'] == 'Test Quiz'
+
+
+@pytest.mark.django_db
+def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.get(url)
+
+    questions = response.data[0]['questions']
+    assert len(questions) == 10
+    assert questions[0]['question_title'] == 'Question 1'
+    assert questions[0]['answer'] == 'Option A'
+    assert isinstance(questions[0]['question_options'], list)
+    assert 'Option A' in questions[0]['question_options']
+
+
+@pytest.mark.django_db
+def test_get_quizzes_returns_expected_fields(authenticated_client, sample_quiz):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.get(url)
+
+    quiz_data = response.data[0]
+    expected_fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
+    for field in expected_fields:
+        assert field in quiz_data
+
+
+@pytest.mark.django_db
+def test_get_quizzes_unauthenticated(api_client):
+    url = reverse('quiz-list-create')
+    response = api_client.get(url)
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_get_quizzes_only_own_quizzes(authenticated_client, sample_quiz):
+    other_user = User.objects.create_user(
+        username='otheruser',
+        email='other@example.com',
+        password='testpassword123'
+    )
+    Quiz.objects.create(
+        user=other_user,
+        title='Other Quiz',
+        video_url=MOCK_VIDEO_URL,
+        status=Quiz.Status.COMPLETED
+    )
+
+    url = reverse('quiz-list-create')
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 1
+    assert response.data[0]['title'] == 'Test Quiz'
+
+
+@pytest.mark.django_db
+def test_get_quizzes_empty_list(authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 0
+
+
+# ==================== POST /api/quizzes/ ====================
+
+@pytest.mark.django_db
+@patch('quiz_app.api.views.generate_quiz', return_value=MOCK_QUESTIONS)
+@patch('quiz_app.api.views.transcribe_audio', return_value='Mocked transcript text')
+@patch('quiz_app.api.views.download_audio', return_value={
+    'audio_path': '/tmp/fake_audio.mp3',
+    'title': 'Mocked Video Title'
+})
+def test_post_quiz_success(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['title'] == 'Mocked Video Title'
+    assert len(response.data['questions']) == 10
+    assert Quiz.objects.count() == 1
+    assert Question.objects.count() == 10
+
+
+@pytest.mark.django_db
+@patch('quiz_app.api.views.generate_quiz', return_value=MOCK_QUESTIONS)
+@patch('quiz_app.api.views.transcribe_audio', return_value='Mocked transcript text')
+@patch('quiz_app.api.views.download_audio', return_value={
+    'audio_path': '/tmp/fake_audio.mp3',
+    'title': 'Mocked Video Title'
+})
+def test_post_quiz_returns_expected_fields(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    expected_quiz_fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
+    for field in expected_quiz_fields:
+        assert field in response.data
+
+    expected_question_fields = ['id', 'question_title', 'question_options', 'answer', 'created_at', 'updated_at']
+    for field in expected_question_fields:
+        assert field in response.data['questions'][0]
+
+
+@pytest.mark.django_db
+def test_post_quiz_unauthenticated(api_client):
+    url = reverse('quiz-list-create')
+    response = api_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_post_quiz_invalid_url(authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': 'not-a-valid-url'}, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_post_quiz_missing_url(authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {}, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+@patch('quiz_app.api.views.download_audio', side_effect=ValueError('Download failed'))
+def test_post_quiz_download_failure(mock_download, authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Download failed' in response.data['detail']
+
+
+@pytest.mark.django_db
+@patch('quiz_app.api.views.transcribe_audio', side_effect=ValueError('Transcription failed'))
+@patch('quiz_app.api.views.download_audio', return_value={
+    'audio_path': '/tmp/fake_audio.mp3',
+    'title': 'Mocked Video Title'
+})
+def test_post_quiz_transcription_failure(mock_download, mock_transcribe, authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Transcription failed' in response.data['detail']
+
+
+@pytest.mark.django_db
+@patch('quiz_app.api.views.generate_quiz', side_effect=ValueError('Quiz generation failed'))
+@patch('quiz_app.api.views.transcribe_audio', return_value='Mocked transcript text')
+@patch('quiz_app.api.views.download_audio', return_value={
+    'audio_path': '/tmp/fake_audio.mp3',
+    'title': 'Mocked Video Title'
+})
+def test_post_quiz_generation_failure(mock_download, mock_transcribe, mock_generate, authenticated_client):
+    url = reverse('quiz-list-create')
+    response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Quiz generation failed' in response.data['detail']
