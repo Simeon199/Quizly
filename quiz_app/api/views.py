@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -8,22 +9,20 @@ from quiz_app.services.transcription_service import transcribe_audio
 from quiz_app.services.quiz_generation_service import generate_quiz
 
 
-class QuizRetrieveView(generics.RetrieveAPIView):
+class QuizDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = QuizSerializer
+    http_method_names = ['get', 'patch', 'delete']
 
-    def get_queryset(self):
-        return Quiz.objects.filter(user=self.request.user)
-
-
-class QuizUpdateView(generics.UpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = QuizUpdateSerializer
-    http_method_names = ['patch']
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH':
+            return QuizUpdateSerializer
+        return QuizSerializer
 
     def get_object(self):
         quiz = generics.get_object_or_404(Quiz, pk=self.kwargs['pk'])
         if quiz.user != self.request.user:
+            if self.request.method == 'GET':
+                raise Http404
             raise PermissionDenied()
         return quiz
 
@@ -33,16 +32,6 @@ class QuizUpdateView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(QuizSerializer(quiz).data, status=status.HTTP_200_OK)
-
-
-class QuizDestroyView(generics.DestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self):
-        quiz = generics.get_object_or_404(Quiz, pk=self.kwargs['pk'])
-        if quiz.user != self.request.user:
-            raise PermissionDenied()
-        return quiz
 
 
 class QuizListCreateView(generics.ListCreateAPIView):
