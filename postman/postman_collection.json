@@ -1,0 +1,1007 @@
+{
+  "info": {
+    "_postman_id": "6ef67282-8efa-4811-bb27-c19cafd07abc",
+    "name": "Quizly",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48418088",
+    "_collection_link": "https://go.postman.co/collection/48418088-6ef67282-8efa-4811-bb27-c19cafd07abc?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check status code is 201 Created\r",
+                  "pm.test(\"Status code is 201 or 400 (already exists)\", function () {\r",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);\r",
+                  "});\r",
+                  "\r",
+                  "if(pm.response.code === 201){\r",
+                  "    pm.test(\"Response has success detail\", function(){\r",
+                  "        const data = pm.response.json();\r",
+                  "        pm.expect(data.detail).to.eql(\"User created successfully!\");\r",
+                  "    });\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const timestamp = Date.now()\r",
+                  "pm.collectionVariables.set(\"register_username\", \"testuser_\" +  timestamp);\r",
+                  "pm.collectionVariables.set(\"register_email\", \"test\" + timestamp + \"@example.com\");\r",
+                  "pm.collectionVariables.set(\"register_password\", \"testpassword123\");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"{{register_username}}\",\r\n    \"password\": \"{{register_password}}\",\r\n    \"confirmed_password\": \"{{register_password}}\",\r\n    \"email\": \"{{register_email}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/register/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "register",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check status code is 200 OK",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check success message and user object",
+                  "pm.test(\"Response has login success detail\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail).to.eql(\"Login successfully!\");",
+                  "    pm.expect(jsonData).to.have.property(\"user\");",
+                  "    pm.expect(jsonData.user).to.have.property(\"username\");",
+                  "    pm.expect(jsonData.user).to.have.property(\"email\");",
+                  "});",
+                  "",
+                  "// Check Cookies are set",
+                  "pm.test(\"Cookies are set\", function () {",
+                  "    pm.expect(pm.cookies.has('access_token')).to.be.true;",
+                  "    pm.expect(pm.cookies.has('refresh_token')).to.be.true;",
+                  "});",
+                  "",
+                  "// Automatically save tokens to environment variables",
+                  "const accessToken = pm.cookies.get('access_token');",
+                  "const refreshToken = pm.cookies.get('refresh_token');",
+                  "",
+                  "if (accessToken) {",
+                  "    pm.environment.set('access_token', accessToken);",
+                  "    console.log('access_token saved to environment');",
+                  "}",
+                  "if (refreshToken) {",
+                  "    pm.environment.set('refresh_token', refreshToken);",
+                  "    console.log('refresh_token saved to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"{{test_username}}\",\r\n    \"password\": \"{{test_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/login/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "login",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Token Refresh",
+          "event": [
+            {
+              "script": {
+                "exec": [
+                  "// Check status code is 200 OK",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check success message",
+                  "pm.test(\"Response has refresh success detail\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail).to.eql(\"Token refreshed\");",
+                  "});",
+                  "",
+                  "// Check access_token cookie is present (it should be updated)",
+                  "pm.test(\"Access token cookie exists\", function () {",
+                  "    pm.expect(pm.cookies.has('access_token')).to.be.true;",
+                  "});",
+                  "",
+                  "// Automatically update access_token environment variable",
+                  "const accessToken = pm.cookies.get('access_token');",
+                  "if (accessToken) {",
+                  "    pm.environment.set('access_token', accessToken);",
+                  "    console.log('access_token refreshed and saved to environment');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "jwt",
+              "jwt": [
+                {
+                  "key": "algorithm",
+                  "value": "HS256",
+                  "type": "string"
+                },
+                {
+                  "key": "isSecretBase64Encoded",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "payload",
+                  "value": "{}",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "headerPrefix",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "queryParamKey",
+                  "value": "token",
+                  "type": "string"
+                },
+                {
+                  "key": "header",
+                  "value": "{}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{refresh_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/token/refresh/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "token",
+                "refresh",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check status code is 200 OK\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Check success message\r",
+                  "pm.test(\"Response has logout success detail\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.detail).to.include(\"Log-Out successfully\");\r",
+                  "});\r",
+                  "\r",
+                  "// Check cookies are cleared (value is typically empty string or deleted)\r",
+                  "pm.test(\"Cookies are cleared\", function () {\r",
+                  "    if (pm.cookies.has('access_token')) {\r",
+                  "         var accessToken = pm.cookies.get('access_token');\r",
+                  "         pm.expect(accessToken).to.be.empty;\r",
+                  "    }\r",
+                  "    if (pm.cookies.has('refresh_token')) {\r",
+                  "         var refreshToken = pm.cookies.get('refresh_token');\r",
+                  "         pm.expect(refreshToken).to.be.empty;\r",
+                  "    }\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "jwt",
+              "jwt": [
+                {
+                  "key": "algorithm",
+                  "value": "HS256",
+                  "type": "string"
+                },
+                {
+                  "key": "isSecretBase64Encoded",
+                  "value": false,
+                  "type": "boolean"
+                },
+                {
+                  "key": "payload",
+                  "value": "{}",
+                  "type": "string"
+                },
+                {
+                  "key": "addTokenTo",
+                  "value": "header",
+                  "type": "string"
+                },
+                {
+                  "key": "headerPrefix",
+                  "value": "Bearer",
+                  "type": "string"
+                },
+                {
+                  "key": "queryParamKey",
+                  "value": "token",
+                  "type": "string"
+                },
+                {
+                  "key": "header",
+                  "value": "{}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/logout/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "logout",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Quizzes - Authenticated",
+      "item": [
+        {
+          "name": "Quizzes - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testing authenticated user with empty array\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function(){\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response is an Array\", function(){\r",
+                  "    const data = pm.response.json();\r",
+                  "    pm.expect(data).to.be.an(\"array\");\r",
+                  "});\r",
+                  "\r",
+                  "// Testing authenticated user after successfull creation of a quiz\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function(){\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"At least one quiz is present\", function(){\r",
+                  "    const data = pm.response.json();\r",
+                  "    pm.expect(data.length).to.be.at.least(1);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Quiz contains nested questions\", function(){\r",
+                  "    const quiz = pm.response.json()[0];\r",
+                  "    pm.expect(quiz.questions).to.be.an(\"array\");\r",
+                  "    pm.expect(quiz.questions.length).to.equal(10);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"User can only see his own quizzes\", function(){\r",
+                  "    const data = pm.response.json();\r",
+                  "    data.forEach(function(quiz){\r",
+                  "        pm.expect(quiz).to.have.property(\"title\");\r",
+                  "        pm.expect(quiz).to.have.property(\"questions\");\r",
+                  "    });\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true,
+            "followRedirects": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testing the successfull creation of a quiz and its correct structure\r",
+                  " \r",
+                  " pm.test(\"Status 201 - Quiz created\", function(){\r",
+                  "    pm.response.to.have.status(201);\r",
+                  " });\r",
+                  "\r",
+                  " pm.test(\"Response contains all quiz fields\", function(){\r",
+                  "     const data = pm.response.json();\r",
+                  "     pm.expect(data).to.have.property(\"id\");\r",
+                  "     pm.expect(data).to.have.property(\"title\");\r",
+                  "     pm.expect(data).to.have.property(\"description\");\r",
+                  "     pm.expect(data).to.have.property(\"created_at\");\r",
+                  "     pm.expect(data).to.have.property(\"updated_at\");\r",
+                  "     pm.expect(data).to.have.property(\"video_url\");\r",
+                  "     pm.expect(data).to.have.property(\"questions\");\r",
+                  " });\r",
+                  "\r",
+                  " pm.test(\"Quiz contains 10 questions\", function(){\r",
+                  "     const questions = pm.response.json().questions;\r",
+                  "     pm.expect(questions).to.be.an(\"array\");\r",
+                  "     pm.expect(questions).to.have.length(10);\r",
+                  " });\r",
+                  "\r",
+                  " pm.test(\"Each question contains all required fields\", function(){\r",
+                  "    const questions = pm.response.json().questions;\r",
+                  "     questions.forEach(function (question) {\r",
+                  "         pm.expect(question).to.have.property(\"id\");\r",
+                  "         pm.expect(question).to.have.property(\"question_title\");\r",
+                  "         pm.expect(question).to.have.property(\"question_options\");\r",
+                  "         pm.expect(question).to.have.property(\"answer\");\r",
+                  "         pm.expect(question).to.have.property(\"created_at\");\r",
+                  "         pm.expect(question).to.have.property(\"updated_at\");  \r",
+                  "     });\r",
+                  " });\r",
+                  "\r",
+                  " pm.test(\"Valid answers are (A, B, C, or D)\", function(){\r",
+                  "    const questions = pm.response.json().questions;\r",
+                  "    const valid = [\"A\", \"B\", \"C\", \"D\"];\r",
+                  "    questions.forEach(function(question){\r",
+                  "        pm.expect(valid).to.include(question.answer);\r",
+                  "    });\r",
+                  " });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"url\": \"{{youtube_url}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Invalid URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testing creation process of a quiz is invalid\r",
+                  "\r",
+                  "pm.test(\"Status 400 for invalid URL\", function(){\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"url\": \"not a valid url\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Missing URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 400 for missing URL field\", function(){\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Success",
+          "event": [
+            {
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 200\", function(){",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains all expected fields\", function(){",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.have.property(\"id\");",
+                  "    pm.expect(data).to.have.property(\"title\");",
+                  "    pm.expect(data).to.have.property(\"description\");",
+                  "    pm.expect(data).to.have.property(\"created_at\");",
+                  "    pm.expect(data).to.have.property(\"updated_at\");",
+                  "    pm.expect(data).to.have.property(\"video_url\");",
+                  "    pm.expect(data).to.have.property(\"questions\");",
+                  "});",
+                  "",
+                  "pm.test(\"Title was updated correctly\", function(){",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.title).to.equal(\"Partially Updated Title\");",
+                  "});",
+                  "",
+                  "pm.test(\"Questions are preserved after update\", function(){",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.questions).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              },
+              "listen": "test"
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\"title\": \"Partially Updated Title\",\r\n\"description\": \"Partially Updated Description\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/1/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Response body is empty', function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});",
+                  "",
+                  "pm.test('Quiz is no longer retrievable', function () {",
+                  "    const getRequest = {",
+                  "        url: pm.environment.get('BASE_URL') + '/api/quizzes/' + pm.environment.get('quiz_id') + '/',",
+                  "        method: 'GET',",
+                  "        header: {",
+                  "            'Authorization': 'Bearer ' + pm.environment.get('access_token')",
+                  "        }",
+                  "    };",
+                  "    pm.sendRequest(getRequest, function (err, res) {",
+                  "        pm.expect(res.code).to.eql(404);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/1/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer"
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              "const accessToken = pm.cookies.get(\"access_token\");\r",
+              "\r",
+              "if(!accessToken){\r",
+              "    const baseUrl = pm.collectionVariables.get(\"base_url\");\r",
+              "    const refreshUrl = baseUrl + \"/api/token/refresh\";\r",
+              "\r",
+              "    pm.sendRequest({\r",
+              "        url: refreshUrl,\r",
+              "        method: \"POST\",\r",
+              "        header: {\r",
+              "            \"Content-Type\": \"application/json\",\r",
+              "            \"Cookie\": \"refresh_token=\" + pm.cookies.get(\"refresh_token\")\r",
+              "        }\r",
+              "    }, function(err, res){\r",
+              "        if(err || res.code !== 200){\r",
+              "            console.log(\"Token refresh failed - login required\")\r",
+              "        }\r",
+              "    });\r",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quizzes - Unauthenticated",
+      "item": [
+        {
+          "name": "Quizzes - Unauthenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testing unauthenticated user (cookies deactivated for example)\r",
+                  "\r",
+                  "pm.test(\"Status 401 without authentication\", function(){\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true,
+            "followRedirects": true,
+            "disableCookies": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Quizzes - Unauthenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Testing for unauthenticated user\r",
+                  "\r",
+                  "pm.test(\"Status 401 for non authenticated user\", function(){\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          },
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text",
+                "disabled": true
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"url\": \"{{youtube_url}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "quizzes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Helper: prüfe ob JWT abgelaufen ist (oder in <30s abläuft)",
+          "function isTokenExpired(token) {",
+          "    if (!token) return true;",
+          "    try {",
+          "        const payload = JSON.parse(atob(token.split('.')[1]));",
+          "        const now = Math.floor(Date.now() / 1000);",
+          "        return payload.exp < now + 30;",
+          "    } catch (e) {",
+          "        return true;",
+          "    }",
+          "}",
+          "",
+          "const accessToken = pm.environment.get('access_token');",
+          "",
+          "// Nur refreshen, wenn Token vorhanden UND abgelaufen ist.",
+          "// Bei unauthentifizierten Requests (kein Token gesetzt) passiert nichts.",
+          "if (accessToken && isTokenExpired(accessToken)) {",
+          "    const baseUrl = pm.environment.get('BASE_URL');",
+          "    const refreshToken = pm.environment.get('refresh_token');",
+          "",
+          "    if (refreshToken) {",
+          "        pm.sendRequest({",
+          "            url: baseUrl + '/api/token/refresh/',",
+          "            method: 'POST',",
+          "            header: {",
+          "                'Content-Type': 'application/json',",
+          "                'Authorization': 'Bearer ' + refreshToken",
+          "            }",
+          "        }, function(err, res) {",
+          "            if (!err && res.code === 200) {",
+          "                const newToken = res.cookies.get('access_token');",
+          "                if (newToken) {",
+          "                    pm.environment.set('access_token', newToken);",
+          "                    console.log('access_token auto-refreshed successfully');",
+          "                }",
+          "            } else {",
+          "                console.warn('Auto-refresh failed - please run the Login request again');",
+          "            }",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "register_username",
+      "value": ""
+    },
+    {
+      "key": "register_email",
+      "value": ""
+    },
+    {
+      "key": "register_password",
+      "value": ""
+    }
+  ]
+}
