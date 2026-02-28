@@ -29,7 +29,7 @@ def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
     """
     Test that retrieving quizzes includes all associated questions.
     Verifies that quiz list responses include all questions with correct
-    titles, answers, and answer options formatted as a list.
+    titles, answer letters (A/B/C/D), and answer options as a dict.
     """
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
@@ -37,9 +37,9 @@ def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
     questions = response.data[0]['questions']
     assert len(questions) == 10
     assert questions[0]['question_title'] == 'Question 1'
-    assert questions[0]['answer'] == 'Option A'
-    assert isinstance(questions[0]['question_options'], list)
-    assert 'Option A' in questions[0]['question_options']
+    assert questions[0]['answer'] == 'A'
+    assert isinstance(questions[0]['question_options'], dict)
+    assert 'A' in questions[0]['question_options']
 
 
 @pytest.mark.django_db
