@@ -487,7 +487,10 @@
                   "    questions.forEach(function(question){\r",
                   "        pm.expect(valid).to.include(question.answer);\r",
                   "    });\r",
-                  " });"
+                  " });\r",
+                  "\r",
+                  " // Save quiz ID for subsequent PATCH and DELETE requests\r",
+                  " pm.environment.set('quiz_id', pm.response.json().id);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -687,14 +690,14 @@
               }
             },
             "url": {
-              "raw": "{{BASE_URL}}/api/quizzes/1/",
+              "raw": "{{BASE_URL}}/api/quizzes/{{quiz_id}}/",
               "host": [
                 "{{BASE_URL}}"
               ],
               "path": [
                 "api",
                 "quizzes",
-                "1",
+                "{{quiz_id}}",
                 ""
               ]
             }
@@ -744,14 +747,14 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/quizzes/1/",
+              "raw": "{{BASE_URL}}/api/quizzes/{{quiz_id}}/",
               "host": [
                 "{{BASE_URL}}"
               ],
               "path": [
                 "api",
                 "quizzes",
-                "1",
+                "{{quiz_id}}",
                 ""
               ]
             }
