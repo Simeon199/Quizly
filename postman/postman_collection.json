@@ -489,8 +489,8 @@
                   "    });\r",
                   " });\r",
                   "\r",
-                  " // Save quiz ID for subsequent PATCH and DELETE requests\r",
-                  " pm.environment.set('quiz_id', pm.response.json().id);"
+                  " // Save quiz_id for subsequent PATCH and DELETE request  \r",
+                  "pm.environment.set(\"quiz_id\", pm.response.json().id);"
                 ],
                 "type": "text/javascript",
                 "packages": {},
