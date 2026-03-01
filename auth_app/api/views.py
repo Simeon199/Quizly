@@ -10,6 +10,13 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Register a new user account.  
+        Args:
+            request: HTTP request containing user registration data.
+        Returns:
+            Response: 201 Created with success message or 400 Bad Request with validation errors.
+        """
         serializer = RegistrationSerializer(data=request.data)
 
         data = {}
@@ -27,6 +34,15 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     
     def post(self, request, *args, **kwargs):
+        """
+        Authenticate user and set JWT tokens in secure cookies.
+        Args:
+            request: HTTP request containing user credentials.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+        Returns:
+            Response: 200 OK with login success message and user data, tokens set in cookies.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -41,12 +57,24 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         return response
     
     def _create_login_response(self, user):
+        """Create a login success response with user data.
+        Args:
+            user: Authenticated user object.
+        Returns:
+            Response: Response object with success message and user information.
+        """
         return Response({
             "detail": "Login successfully!",
             "user": user
         })
     
     def _set_access_token_cookie(self, response, access):
+        """
+        Set the access token in an HTTP-only, secure cookie.
+        Args:
+            response: Response object to set the cookie on.
+            access: JWT access token string.
+        """
         response.set_cookie(
             key='access_token',
             value=str(access),
@@ -56,6 +84,12 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         )
     
     def _set_refresh_token_cookie(self, response, refresh):
+        """
+        Set the refresh token in an HTTP-only, secure cookie.
+        Args:
+            response: Response object to set the cookie on.
+            refresh: JWT refresh token string.
+        """
         response.set_cookie(
             key='refresh_token',
             value=str(refresh),
@@ -66,6 +100,15 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
+        """
+        Refresh the access token using the refresh token from cookies.
+        Args:
+            request: HTTP request containing refresh token in cookies.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments.
+        Returns:
+            Response: 200 OK with refreshed access token in cookie, or 400/401 error responses.
+        """
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token is None:
             return Response(
@@ -85,6 +128,13 @@ class CookieTokenRefreshView(TokenRefreshView):
         return response
     
     def _refresh_access_token(self, refresh_token):
+        """
+        Validate refresh token and return new access token.
+        Args:
+            refresh_token: JWT refresh token string.
+        Returns:
+            str: New access token if successful, None if token is invalid.
+        """
         try:
             serializer = self.get_serializer(data={'refresh': refresh_token})
             serializer.is_valid(raise_exception=True)
@@ -93,6 +143,12 @@ class CookieTokenRefreshView(TokenRefreshView):
             return None
     
     def _set_access_token_cookie(self, response, access_token):
+        """
+        Set the refreshed access token in an HTTP-only, secure cookie.
+        Args:
+            response: Response object to set the cookie on.
+            access_token: JWT access token string.
+        """
         response.set_cookie(
             key='access_token',
             value=access_token,
@@ -105,12 +161,24 @@ class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        """
+        Logout user by blacklisting refresh token and clearing auth cookies.
+        Args:
+            request: Authenticated HTTP request.
+        Returns:
+            Response: 200 OK with logout success message, cookies deleted.
+        """
         self._blacklist_refresh_token(request)
         response = self._create_logout_response()
         self._delete_auth_cookies(response)
         return response
     
     def _blacklist_refresh_token(self, request):
+        """
+        Add refresh token to blacklist to invalidate it.
+        Args:
+            request: HTTP request containing refresh token in cookies.
+        """
         try:
             refresh_token = request.COOKIES.get('refresh_token')
             if refresh_token:
@@ -120,11 +188,21 @@ class LogoutView(APIView):
             pass
     
     def _create_logout_response(self):
+        """
+        Create a logout success response.
+        Returns:
+            Response: 200 OK response with logout success message.
+        """
         return Response(
             {"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."},
             status=status.HTTP_200_OK
         )
     
     def _delete_auth_cookies(self, response):
+        """
+        Remove authentication cookies from the response.
+        Args:
+            response: Response object to delete cookies from.
+        """
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
