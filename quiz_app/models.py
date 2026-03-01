@@ -41,7 +41,7 @@ class Question(models.Model):
         related_name='questions'
     )
     question_title = models.CharField(max_length=500)
-    question_options = models.JSONField()
+    question_options = models.JSONField(default=list)
     answer = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
