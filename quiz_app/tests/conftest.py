@@ -9,13 +9,8 @@ MOCK_VIDEO_URL = 'https://www.youtube.com/watch?v=test123'
 MOCK_QUESTIONS = [
     {
         'question_title': f'Question {i}',
-        'question_options': {
-            'A': 'Option A',
-            'B': 'Option B',
-            'C': 'Option C',
-            'D': 'Option D',
-        },
-        'answer': 'A',
+        'question_options': ['Option A', 'Option B', 'Option C', 'Option D'],
+        'answer': 'Option A',
     }
     for i in range(1, 11)
 ]
@@ -91,12 +86,7 @@ def sample_quiz(user):
         Question.objects.create(
             quiz=quiz,
             question_title=f'Question {i}',
-            question_options={
-                'A': 'Option A',
-                'B': 'Option B',
-                'C': 'Option C',
-                'D': 'Option D',
-            },
-            answer='A'
+            question_options=['Option A', 'Option B', 'Option C', 'Option D'],
+            answer='Option A'
         )
     return quiz

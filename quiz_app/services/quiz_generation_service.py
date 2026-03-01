@@ -5,25 +5,25 @@ from google import genai
 QUIZ_PROMPT = """
 Erstellen anhand der folgenden Transkription eines YouTube-Videos ein Quiz mit genau 10 Multiple-Choice-Fragen.
 
-Jede Frage muss genau 4 Antwortmöglichkeiten (A, B, C, D) mit genau einer richtigen Antwort enthalten.
+Jede Frage muss genau 4 Antwortmöglichkeiten mit genau einer richtigen Antwort enthalten.
 
 WICHTIG: Gebe NUR ein gültiges JSON-Array ohne zusätzlichen Text, ohne Markdown und ohne Code-Fences zurück.
 Jedes Objekt im Array muss genau diese Schlüssel enthalten:
 - „question_title”: Der Fragetext
-- „question_options”: Ein Objekt mit den Schlüsseln „A”, „B”, „C”, „D” und den entsprechenden Antworttexten
-- „answer”: Der Buchstabe der richtigen Antwort („A”, „B”, „C” oder „D”)
+- „question_options”: Ein Array mit genau 4 Antwortoptionen als Zeichenketten
+- „answer”: Der vollständige Text der richtigen Antwort (muss exakt mit einem der Einträge in „question_options” übereinstimmen)
 
 Beispielformat:
 [
     {
-        „question_title“: „Was ist das Hauptthema der Diskussion?“,
-        „question_options”: {
-            „A”: „Text Option A”,
-            „B”: „Text Option B”,
-            „C”: „Text Option C”,
-            „D”: „Text Option D”
-        },
-        „answer”: „A”
+        „question_title”: „Was ist das Hauptthema der Diskussion?”,
+        „question_options”: [
+            „Text Option 1”,
+            „Text Option 2”,
+            „Text Option 3”,
+            „Text Option 4”
+        ],
+        „answer”: „Text Option 1”
     }
 ]
 
@@ -101,21 +101,24 @@ def _validate_required_keys(question, index):
 
 def _validate_options(question, index):
     """
-    Raises ValueError if any of the options A, B, C or D is missing.
+    Raises ValueError if question_options is not a list with exactly 4 items.
     """
     options = question['question_options']
-    if not all(letter in options for letter in ('A', 'B', 'C', 'D')):
+    if not isinstance(options, list) or len(options) != 4:
         raise ValueError(
-            f"Question {index} is missing answer options. "
-            f"Got keys: {list(options.keys())}"
+            f"Question {index} must have exactly 4 answer options as a list. "
+            f"Got: {options}"
         )
 
 def _validate_answer(question, index):
     """
-    Raises ValueError if the answer is not A, B, C or D.
+    Raises ValueError if the answer is not one of the question_options.
     """
-    if question['answer'] not in ('A', 'B', 'C', 'D'):
-        raise ValueError(f"Question {index} has invalid answer: {question['answer']}")
+    if question['answer'] not in question['question_options']:
+        raise ValueError(
+            f"Question {index} has invalid answer: '{question['answer']}'. "
+            f"Answer must match one of the question_options."
+        )
 
 def _validate_question_structure(question, index):
     """
