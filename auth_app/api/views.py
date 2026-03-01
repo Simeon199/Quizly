@@ -57,7 +57,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         return response
     
     def _create_login_response(self, user):
-        """Create a login success response with user data.
+        """
+        Create a login success response with user data.
         Args:
             user: Authenticated user object.
         Returns:
