@@ -101,19 +101,15 @@ def test_refresh_token(api_client, created_user):
     a valid refresh token from a previous login.
     """
 
-    # First login to get a refresh token
     login_url = reverse('token_obtain_pair')
     login_response = api_client.post(login_url, {
         "username": created_user.username,
         "password": "testpassword123"
     })
     refresh_token = login_response.cookies['refresh_token'].value
-
-    # Refresh
     refresh_url = reverse('token_refresh')
     api_client.cookies['refresh_token'] = refresh_token
-    response = api_client.post(refresh_url)
-    
+    response = api_client.post(refresh_url)    
     assert response.status_code == status.HTTP_200_OK
     assert response.data['detail'] == "Token refreshed"
     assert 'access_token' in response.cookies
@@ -125,8 +121,7 @@ def test_logout(api_client, created_user):
     Verifies that an authenticated user can logout, refresh token is blacklisted,
     and authentication cookies are deleted from the response.
     """
-
-     # First login to get a refresh token
+    
     login_url = reverse('token_obtain_pair')
     login_response = api_client.post(login_url, {
         "username": created_user.username,
@@ -134,14 +129,11 @@ def test_logout(api_client, created_user):
     })
     refresh_token = login_response.cookies['refresh_token'].value
     access_token = login_response.cookies['access_token'].value
-
-    # Logout
     logout_url = reverse('logout')
     api_client.cookies['refresh_token'] = refresh_token
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}') 
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-    response = api_client.post(logout_url)
-    
+    response = api_client.post(logout_url)    
     assert response.status_code == status.HTTP_200_OK
     assert "Log-Out successfully" in response.data['detail']
     assert response.cookies['access_token'].value == ''

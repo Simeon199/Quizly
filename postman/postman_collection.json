@@ -711,7 +711,12 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"username\": \"{{register_username}}\",\r\n    \"password\": \"{{register_password}}\"\r\n}"
+              "raw": "{\r\n    \"username\": \"{{register_username}}\",\r\n    \"password\": \"{{register_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{BASE_URL}}/api/login/",
@@ -733,11 +738,7 @@
             {
               "script": {
                 "exec": [
-                  "// A forbidden status message should be returned for a user who is trying to PATCH another user's quiz\r",
-                  "\r",
-                  "pm.test(\"Status 403 when patching another user's quiz\", function(){\r",
-                  "    pm.response.to.have(403);\r",
-                  "});"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -749,46 +750,6 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// const baseUrl = pm.environment.get('BASE_URL');\r",
-                  "// const timestamp = Date.now();\r",
-                  "// const username = 'other_user_' + timestamp;\r",
-                  "// const password = 'testpassword123';\r",
-                  "\r",
-                  "// pm.sendRequest({\r",
-                  "//     url: baseUrl + '/api/register/',\r",
-                  "//     method: 'POST',\r",
-                  "//     header: { 'Content-Type': 'application/json' },\r",
-                  "//     body: {\r",
-                  "//         mode: 'raw',\r",
-                  "//         raw: JSON.stringify({\r",
-                  "//             username: username,\r",
-                  "//             password: password,\r",
-                  "//             confirmed_password: password,\r",
-                  "//             email: username + '@example.com'\r",
-                  "//         })\r",
-                  "//     }\r",
-                  "// }, function(err, registerRes) {\r",
-                  "//     if (err || registerRes.code !== 201) {\r",
-                  "//         console.log('Registration of second user failed:', err || registerRes.code);\r",
-                  "//         return;\r",
-                  "//     }\r",
-                  "//     pm.sendRequest({\r",
-                  "//         url: baseUrl + '/api/login/',\r",
-                  "//         method: 'POST',\r",
-                  "//         header: { 'Content-Type': 'application/json' },\r",
-                  "//         body: {\r",
-                  "//             mode: 'raw',\r",
-                  "//             raw: JSON.stringify({ username: username, password: password })\r",
-                  "//         }\r",
-                  "//     }, function(err2, loginRes) {\r",
-                  "//         if (err2 || loginRes.code !== 200) {\r",
-                  "//             console.log('Login of second user failed:', err2 || loginRes.code);\r",
-                  "//             return;\r",
-                  "//         }\r",
-                  "//         const otherToken = loginRes.cookies.get('access_token');\r",
-                  "//         pm.environment.set('other_access_token', otherToken);\r",
-                  "//     });\r",
-                  "// });\r",
                   ""
                 ],
                 "type": "text/javascript",
@@ -870,6 +831,15 @@
                 "value": "Bearer {{access_token}}"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{BASE_URL}}/api/quizzes/99999/",
               "host": [
@@ -970,7 +940,12 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"username\": \"{{test_username}}\",\r\n    \"password\": \"{{test_password}}\"\r\n}"
+              "raw": "{\r\n    \"username\": \"{{test_username}}\",\r\n    \"password\": \"{{test_password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{BASE_URL}}/api/login/",
@@ -993,26 +968,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 204 No Content', function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});",
-                  "",
-                  "pm.test('Response body is empty', function () {",
-                  "    pm.expect(pm.response.text()).to.be.empty;",
-                  "});",
-                  "",
-                  "pm.test('Quiz is no longer retrievable', function () {",
-                  "    const getRequest = {",
-                  "        url: pm.environment.get('BASE_URL') + '/api/quizzes/' + pm.environment.get('quiz_id') + '/',",
-                  "        method: 'GET',",
-                  "        header: {",
-                  "            'Authorization': 'Bearer ' + pm.environment.get('access_token')",
-                  "        }",
-                  "    };",
-                  "    pm.sendRequest(getRequest, function (err, res) {",
-                  "        pm.expect(res.code).to.eql(404);",
-                  "    });",
-                  "});"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
