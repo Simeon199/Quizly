@@ -72,6 +72,7 @@ class QuizListCreateView(generics.ListCreateAPIView):
     operations. Handles the complete quiz generation pipeline including audio
     download, transcription, and AI-powered question generation.
     """
+    
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):

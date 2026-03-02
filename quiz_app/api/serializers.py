@@ -52,7 +52,7 @@ class QuizUpdateSerializer(serializers.ModelSerializer):
     Allows partial updates to quiz metadata. Both title and description
     are optional fields to support PATCH requests.
     """
-    
+
     class Meta:
         model = Quiz
         fields = ['title', 'description']
