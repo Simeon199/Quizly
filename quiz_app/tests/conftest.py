@@ -20,10 +20,10 @@ MOCK_QUESTIONS = [
 def api_client():
     """
     Provide a REST framework API test client.
-    
     Returns:
         APIClient: An unauthenticated API client for making test requests.
     """
+
     return APIClient()
 
 
@@ -32,10 +32,10 @@ def user():
     """
     Create and return a test user.
     Creates a Django User object with predefined credentials for use in tests.
-    
     Returns:
         User: A Django User instance with username 'quizuser'.
     """
+
     return User.objects.create_user(
         username='quizuser',
         email='quiz@example.com',
@@ -49,14 +49,13 @@ def authenticated_client(api_client, user):
     Provide an authenticated REST API test client.
     Returns an APIClient that is authenticated as the test user, allowing
     protected endpoints to be tested.
-    
     Args:
         api_client: The unauthenticated API client fixture.
         user: The test user fixture.
-    
     Returns:
         APIClient: An API client authenticated as the test user.
     """
+
     api_client.force_authenticate(user=user)
     return api_client
 
@@ -67,13 +66,12 @@ def sample_quiz(user):
     Create and return a sample quiz with 10 questions.
     Creates a Quiz object associated with the test user and populates it with
     10 Question objects, each having 4 multiple choice options.
-    
     Args:
         user: The test user fixture to associate with the quiz.
-    
     Returns:
         Quiz: A Quiz instance with 10 associated Question objects.
     """
+    
     quiz = Quiz.objects.create(
         user=user,
         title='Test Quiz',

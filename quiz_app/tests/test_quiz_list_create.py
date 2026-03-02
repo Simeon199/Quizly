@@ -16,9 +16,9 @@ def test_get_quizzes_authenticated(authenticated_client, sample_quiz):
     Verifies that an authenticated user can retrieve their quizzes with a
     200 OK response and correct quiz data.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
-
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 1
     assert response.data[0]['title'] == 'Test Quiz'
@@ -31,9 +31,9 @@ def test_get_quizzes_includes_questions(authenticated_client, sample_quiz):
     Verifies that quiz list responses include all questions with correct
     titles, full answer text, and answer options as a list.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
-
     questions = response.data[0]['questions']
     assert len(questions) == 10
     assert questions[0]['question_title'] == 'Question 1'
@@ -49,9 +49,9 @@ def test_get_quizzes_returns_expected_fields(authenticated_client, sample_quiz):
     Verifies that each quiz in the list contains all expected fields
     including id, timestamps, video URL, and questions.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
-
     quiz_data = response.data[0]
     expected_fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
     for field in expected_fields:
@@ -65,9 +65,9 @@ def test_get_quizzes_unauthenticated(api_client):
     Verifies that accessing the quiz list endpoint without authentication
     returns a 401 Unauthorized response.
     """
+
     url = reverse('quiz-list-create')
     response = api_client.get(url)
-
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -78,6 +78,7 @@ def test_get_quizzes_only_own_quizzes(authenticated_client, sample_quiz):
     Verifies that when multiple users have quizzes, an authenticated user
     only sees their own quizzes, not quizzes from other users.
     """
+
     other_user = User.objects.create_user(
         username='otheruser',
         email='other@example.com',
@@ -89,10 +90,8 @@ def test_get_quizzes_only_own_quizzes(authenticated_client, sample_quiz):
         video_url=MOCK_VIDEO_URL,
         status=Quiz.Status.COMPLETED
     )
-
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
-
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 1
     assert response.data[0]['title'] == 'Test Quiz'
@@ -105,9 +104,9 @@ def test_get_quizzes_empty_list(authenticated_client):
     Verifies that the quiz list endpoint returns 200 OK with an empty
     list when the authenticated user has no quizzes.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.get(url)
-
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 0
 
@@ -127,9 +126,9 @@ def test_post_quiz_success(mock_download, mock_transcribe, mock_generate, authen
     Verifies that posting a valid video URL creates a new quiz with
     generated questions, returns 201 Created, and saves to the database.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data['title'] == 'Mocked Video Title'
     assert len(response.data['questions']) == 10
@@ -150,13 +149,12 @@ def test_post_quiz_returns_expected_fields(mock_download, mock_transcribe, mock_
     Verifies that the POST response contains all expected quiz and question
     fields, including timestamps and video URL.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     expected_quiz_fields = ['id', 'title', 'description', 'created_at', 'updated_at', 'video_url', 'questions']
     for field in expected_quiz_fields:
         assert field in response.data
-
     expected_question_fields = ['id', 'question_title', 'question_options', 'answer', 'created_at', 'updated_at']
     for field in expected_question_fields:
         assert field in response.data['questions'][0]
@@ -169,9 +167,9 @@ def test_post_quiz_unauthenticated(api_client):
     Verifies that attempting to create a quiz without authentication
     returns a 401 Unauthorized response.
     """
+
     url = reverse('quiz-list-create')
     response = api_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -182,9 +180,9 @@ def test_post_quiz_invalid_url(authenticated_client):
     Verifies that providing a malformed URL to create a quiz
     returns a 400 Bad Request response.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': 'not-a-valid-url'}, format='json')
-
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -195,9 +193,9 @@ def test_post_quiz_missing_url(authenticated_client):
     Verifies that omitting the required URL parameter
     returns a 400 Bad Request response.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {}, format='json')
-
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
@@ -209,9 +207,9 @@ def test_post_quiz_download_failure(mock_download, authenticated_client):
     Verifies that when the video audio download fails, the endpoint
     returns 400 Bad Request with error details.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Download failed' in response.data['detail']
 
@@ -228,9 +226,9 @@ def test_post_quiz_transcription_failure(mock_download, mock_transcribe, authent
     Verifies that when transcribing the audio fails, the endpoint
     returns 400 Bad Request with error details.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Transcription failed' in response.data['detail']
 
@@ -248,8 +246,8 @@ def test_post_quiz_generation_failure(mock_download, mock_transcribe, mock_gener
     Verifies that when generating quiz questions fails, the endpoint
     returns 400 Bad Request with error details.
     """
+
     url = reverse('quiz-list-create')
     response = authenticated_client.post(url, {'url': MOCK_VIDEO_URL}, format='json')
-
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Quiz generation failed' in response.data['detail']
