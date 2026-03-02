@@ -47,12 +47,10 @@ Quizly/
 ### Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Simeon199/Quizly.git
 cd Quizly
-
 python -m venv env
-source env/bin/activate        # Windows: env\Scripts\activate
-
+env\Scripts\activate  # For Windows:
 pip install -r requirements.txt
 ```
 
@@ -77,98 +75,6 @@ python manage.py runserver
 ```
 
 The API is available at `http://127.0.0.1:8000`.
-
-## API Reference
-
-### Authentication
-
-All quiz endpoints require authentication. Tokens are stored in HTTP-only cookies and are set automatically on login.
-
-| Method | Endpoint              | Description                          | Auth required |
-|--------|-----------------------|--------------------------------------|---------------|
-| POST   | `/api/register/`      | Register a new user account          | No            |
-| POST   | `/api/login/`         | Login and receive JWT cookies        | No            |
-| POST   | `/api/logout/`        | Logout and invalidate tokens         | Yes           |
-| POST   | `/api/token/refresh/` | Refresh the access token via cookie  | No            |
-
-**Register** — `POST /api/register/`
-```json
-{
-  "username": "alice",
-  "email": "alice@example.com",
-  "password": "secret123",
-  "confirmed_password": "secret123"
-}
-```
-
-**Login** — `POST /api/login/`
-```json
-{
-  "username": "alice",
-  "password": "secret123"
-}
-```
-
-### Quizzes
-
-| Method | Endpoint              | Description                          |
-|--------|-----------------------|--------------------------------------|
-| GET    | `/api/quizzes/`       | List all quizzes of the current user |
-| POST   | `/api/quizzes/`       | Create a quiz from a YouTube URL     |
-| GET    | `/api/quizzes/{id}/`  | Retrieve a specific quiz             |
-| PATCH  | `/api/quizzes/{id}/`  | Update quiz title and/or description |
-| DELETE | `/api/quizzes/{id}/`  | Delete a quiz                        |
-
-**Create a quiz** — `POST /api/quizzes/`
-```json
-{
-  "url": "https://www.youtube.com/watch?v=example"
-}
-```
-
-**Quiz response** (GET)
-```json
-{
-  "id": 1,
-  "title": "Video Title",
-  "description": "",
-  "video_url": "https://www.youtube.com/watch?v=example",
-  "created_at": "2026-03-01T19:32:01.275353Z",
-  "updated_at": "2026-03-01T19:32:01.275372Z",
-  "questions": [
-    {
-      "id": 1,
-      "question_title": "What is the main topic of the video?",
-      "question_options": [
-        "Option A",
-        "Option B",
-        "Option C",
-        "Option D"
-      ],
-      "answer": "Option A",
-      "created_at": "2026-03-01T19:32:01.291121Z",
-      "updated_at": "2026-03-01T19:32:01.291302Z"
-    }
-  ]
-}
-```
-
-**Update a quiz** — `PATCH /api/quizzes/{id}/`
-```json
-{
-  "title": "New Title",
-  "description": "An optional description"
-}
-```
-
-### Error Responses
-
-| Status | Meaning                                          |
-|--------|--------------------------------------------------|
-| 400    | Invalid input or quiz generation failure         |
-| 401    | Missing or expired authentication token          |
-| 403    | Attempting to modify another user's quiz         |
-| 404    | Quiz not found                                   |
 
 ## Quiz Generation Pipeline
 
