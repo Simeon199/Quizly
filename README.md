@@ -15,6 +15,7 @@ This project is designed as a portfolio project for further training as a backen
 - [API Testing with Postman](#api-testing-with-postman)
 - [Quiz Generation Pipeline](#quiz-generation-pipeline)
 - [Token Configuration](#token-configuration)
+- [Contributing](#contributing)
 
 ## Features
 
@@ -129,3 +130,7 @@ Save Quiz + 10 Questions to database
 | Refresh token | 3 days     |
 
 Tokens are transmitted exclusively via HTTP-only cookies and are never exposed in the response body.
+
+## Contributing
+
+Contributions are always welcome! If you have suggestions for improvements or want to propose changes, feel free to open an issue. Alternatively, consider forking the repository and submitting a pull request.
