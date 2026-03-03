@@ -16,6 +16,7 @@ This project is designed as a portfolio project for further training as a backen
 - [Quiz Generation Pipeline](#quiz-generation-pipeline)
 - [Token Configuration](#token-configuration)
 - [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -32,6 +33,7 @@ This project is designed as a portfolio project for further training as a backen
 | Framework      | Django 6 · Django REST Framework    |
 | Authentication | SimpleJWT (HTTP-only cookie tokens) |
 | AI             | Google Gemini API                   |
+| Transcription  | OpenAI Whisper                      |
 | Testing        | pytest · pytest-django              |
 
 ## Project Structure
@@ -134,3 +136,7 @@ Tokens are transmitted exclusively via HTTP-only cookies and are never exposed i
 ## Contributing
 
 Contributions are always welcome! If you have suggestions for improvements or want to propose changes, feel free to open an issue. Alternatively, consider forking the repository and submitting a pull request.
+
+## License
+
+This project is licensed under the MIT License — © 2026 Simon Kiesner.
