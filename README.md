@@ -59,7 +59,6 @@ ensure you have the following prerequisites:
 
 - Python 3.11+
 - A [Google Gemini API key](https://aistudio.google.com/)
-- [Postman](https://www.postman.com/downloads/) (optional, for easy API testing)
 
 ## Installation
 
@@ -92,16 +91,6 @@ To access admin features or perform administrative tasks, create a superuser acc
 3. Use the superuser credentials to log in via the Django admin panel at `http://127.0.0.1:8000/admin/` or for API authentication.
 
 This is useful for testing permissions, managing users, and accessing protected endpoints.
-
-## API Testing with Postman
-
-A [Postman Collection](postman/postman_collection.json) is included to help you test the API endpoints.
-
-**How to use:**
-
-1. Install Postman and import the collection from `postman/postman_collection.json`.
-2. Set the base URL to `http://127.0.0.1:8000/` and adjust further environment variables if necessary.
-3. Use the requests to test and explore API features.
 
 ## Quiz Generation Pipeline
 
