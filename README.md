@@ -12,7 +12,6 @@ This project is designed as a portfolio project for further training as a backen
 - [Environment Variables](#environment-variables)
 - [Running the Server](#running-the-server)
 - [Creating a Superuser](#creating-a-superuser)
-- [API Testing with Postman](#api-testing-with-postman)
 - [Quiz Generation Pipeline](#quiz-generation-pipeline)
 - [Token Configuration](#token-configuration)
 - [Contributing](#contributing)
